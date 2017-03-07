@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/256547/1f0ef7a9b51d4bd89ac574e229ef0f20
+bundleId: https://api.rpubs.com/api/v1/document/256547/1f0ef7a9b51d4bd89ac574e229ef0f20
+url: http://rpubs.com/shorsman/256547
+when: 1488883400.72676

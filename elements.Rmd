@@ -5,33 +5,84 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(lattice)
 ```
 
 ## Chapter 2
 
-quantitive outputs  - continuos output (regression)
-qualitative outputs - categorical/discrete output (classification), classed as {0,1} or {-1,1}
-                      multiclass targets are defined by vectors of binaries {0, 0, 1, 0, 0}
+quantitive outputs  - continuous output (regression)
+qualitative outputs - categorical/discrete output (classification), classed as $\{0,1\}$ or $\{-1,1\}$
+                      multiclass targets are defined by vectors of binaries $\{0, 0, 1, 0, 0\}$
                       
 Input features can be expressed with $X$. $X_j$ refers to the $j$ element of vector $X$.
-Output labels can be expressed with $Y$ if the output is quantative, $G$ if the output is qualitative. If $G$ has output {0, 1} then $G$ = $Y$ and $Y$ >= 0 | $Y$ <= 1 and is classified positive where $Y$ > 0.5
+Output labels can be expressed with $Y$ if the output is quantative, $G$ if the output is qualitative. If $G$ has output {0, 1} then $G$ = $Y$ and $Y >= 0 | Y <= 1$ and is classified positive where $Y > 0.5$
 
+### Linear Models - least squares
 
+The objective of least squares is to minimize the error defined by:
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+$$\hat{Y} = \hat{\beta}_0 + \sum_{j=0}^pX_j\beta_j$$
+which can be rewritten as:
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+$$\hat{Y} = X^T\hat{\beta}$$
+We fit the set of coefficients to minimize the residual sum of squares:
 
-```{r cars}
-summary(cars)
+$$RSS(\beta) = \sum_{i = 1}^N(y_i - x_i^T)^2$$
+or in matrix notation:
+
+$$RSS(\beta) = (y - X\beta)^T(y - X\beta)$$
+
+### Simple R example
+
+```{r}
+alligator <- data.frame(
+  lnLength = c(3.87, 3.61, 4.33, 3.43, 3.81, 3.83, 3.46, 3.76,
+    3.50, 3.58, 4.19, 3.78, 3.71, 3.73, 3.78),
+  lnWeight = c(4.87, 3.93, 6.46, 3.33, 4.38, 4.70, 3.50, 4.50,
+    3.58, 3.64, 5.90, 4.43, 4.38, 4.42, 4.25)
+)
 ```
 
-## Including Plots
+And if we plot length against weight:
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, echo=FALSE}
+xyplot(lnWeight ~ lnLength, data = alligator,
+  xlab = "Snout vent length (inches) on log scale",
+  ylab = "Weight (pounds) on log scale",
+  main = "Alligators in Central Florida"
+)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r, echo=TRUE}
+fit <- lm(lnWeight ~ lnLength, data = alligator)
+summary(fit)
+```
+
+### Linear Models - nearest neighbours
+
+Nearest-neighbor methods use those observations in the training set T closest
+in input space to x to form ˆ Y . Specifically, the k-nearest neighbor fit
+for ˆ Y is defined as follows:
+
+$$\hat{Y}(x) = \frac1k\sum_{x_i\in{N}_k(x)}y_i$$
+```{r, echo=TRUE}
+require(class)
+library(ElemStatLearn)
+require(class)
+x <- mixture.example$x
+g <- mixture.example$y
+xnew <- mixture.example$xnew
+mod15 <- knn(x, xnew, g, k=15, prob=TRUE)
+prob <- attr(mod15, "prob")
+prob <- ifelse(mod15=="1", prob, 1-prob)
+px1 <- mixture.example$px1
+px2 <- mixture.example$px2
+prob15 <- matrix(prob, length(px1), length(px2))
+par(mar=rep(2,4))
+contour(px1, px2, prob15, levels=0.5, labels="", xlab="", ylab="", main=
+        "15-nearest neighbour", axes=FALSE)
+points(x, col=ifelse(g==1, "coral", "cornflowerblue"))
+gd <- expand.grid(x=px1, y=px2)
+points(gd, pch=".", cex=1.2, col=ifelse(prob15>0.5, "coral", "cornflowerblue"))
+box()
+```
